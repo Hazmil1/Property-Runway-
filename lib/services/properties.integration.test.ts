@@ -1,7 +1,7 @@
 import {describe,it,expect,afterAll} from "vitest";import {prisma} from "../db/prisma";import {saveProperty,savePropertyEvent,getProperty} from "./properties";import {createLease} from "./leases";import type {RequestContext} from "../auth/context";
 const suite=process.env.RUN_DATABASE_TESTS==="true"?describe:describe.skip;
 suite("Property organisation boundaries and governance",()=>{const ids:string[]=[];
-afterAll(async()=>{for(const id of ids)await prisma.organisation.delete({where:{id}});await prisma.$disconnect()});
+afterAll(async()=>{for(const id of ids){await prisma.propertyEvent.deleteMany({where:{property:{organisationId:id}}});await prisma.organisation.delete({where:{id}});}await prisma.$disconnect()});
 it("isolates properties, rejects foreign managers and enforces date permissions",async()=>{
  const org=await prisma.organisation.create({data:{name:"Integration A",slug:"test-a-"+crypto.randomUUID()}});ids.push(org.id);
  const org2=await prisma.organisation.create({data:{name:"Integration B",slug:"test-b-"+crypto.randomUUID()}});ids.push(org2.id);
