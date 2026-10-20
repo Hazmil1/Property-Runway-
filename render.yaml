@@ -1,17 +1,23 @@
-# Shareable concept demo only. This service cannot access live records or send emails.
+# Public concept demo only: static sample UI with no server or live data access.
 services:
   - type: web
     name: property-runway-demo
-    runtime: node
-    plan: free
-    buildCommand: npm install && npm run db:generate && npm test && npm run build
-    startCommand: npm start
-    healthCheckPath: /api/health
+    runtime: static
+    buildCommand: node scripts/validate-demo.mjs
+    staticPublishPath: demo
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 24.3.0
-      - key: DEMO_ONLY
+      - key: SKIP_INSTALL_DEPS
         value: "true"
-      - key: ALLOW_DEV_AUTH
-        value: "false"
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self' 'unsafe-inline' data:; connect-src 'none'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'"

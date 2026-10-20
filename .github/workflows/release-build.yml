@@ -33,6 +33,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
+      - name: Validate isolated concept demo
+        run: node scripts/validate-demo.mjs
       - name: Install pinned dependencies
         run: npm install
       - name: Validate schema and generate client

@@ -16,7 +16,7 @@ Standalone property and lease lifecycle operations, built from the Contract Runw
 This is the first adapted implementation. It is not a declaration of production readiness or proven feature parity. See docs/DELIVERY_STATUS.md for validation and setup requirements.
 
 ## Concept demo on Render
-The default render.yaml deploys a free, demo-only service. No database or credentials are needed.
+The default render.yaml deploys a static sample-only demo to Render's CDN. It validates its standalone HTML and scripts without installing the full app dependencies. No database or credentials are needed.
 Use the GitHub Actions verification result before deploying.
 The demo's interactions and displayed figures are illustrative; they do not create live records, connect integrations or send emails.
 
