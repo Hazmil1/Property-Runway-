@@ -36,9 +36,11 @@ for(const width of [320,375,390,430,768,1280]){
 } finally {await browser.close();}
 let live=false;
 for(let i=0;i<24;i++){
+ try {
  const r=await fetch('https://property-runway-demo.onrender.com/?v=property-mobile-v2',{signal:AbortSignal.timeout(20000)});
  const body=await r.text();
  if(r.ok&&body.includes('property-mobile-v2')){live=true;break;}
+ } catch(error) {console.log('Waiting for Render:',error.message);}
  await new Promise(resolve=>setTimeout(resolve,10000));
 }
 assert.ok(live,'Updated demo must be live on Render');
