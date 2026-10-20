@@ -2,8 +2,8 @@ import {readFileSync} from "node:fs";import vm from "node:vm";import assert from
 const html=readFileSync("demo/index.html","utf8");
 assert.ok(html.includes("CONCEPT DEMO"),"Demo must be labelled");
 assert.ok(html.includes('id="properties"'),"Property register must exist");
-assert.ok(!/\\bfetch\\s*\\(/.test(html),"Demo must not call live APIs");
-const scripts=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
+assert.ok(!/\bfetch\s*\(/.test(html),"Demo must not call live APIs");
+const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 for(const [,script] of scripts)new vm.Script(script);
 const sections=new Set([...html.matchAll(/<section id="([^"]+)"/g)].map(m=>m[1]));
 for(const [,target] of html.matchAll(/data-page(?:-btn)?="([^"]+)"/g))assert.ok(sections.has(target),"Missing demo section: "+target);

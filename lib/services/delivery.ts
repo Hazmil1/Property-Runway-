@@ -1,5 +1,5 @@
 import {prisma} from "@/lib/db/prisma";import {createHash} from "node:crypto";
-const escape=(s:unknown)=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]!));
+const escape=(s:unknown)=>String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 export async function deliverQueuedEmails(limit=100){
  if(!process.env.RESEND_API_KEY||!process.env.NOTIFICATION_FROM_EMAIL)return {scanned:0,sent:0,failed:0,skipped:true,reason:"Email delivery is not configured"};
  const events=await prisma.notificationEvent.findMany({where:{channel:"EMAIL",sentAt:null,scheduledFor:{lte:new Date()}},include:{lease:true,user:true,propertyEvent:true},orderBy:{scheduledFor:"asc"},take:limit});let sent=0,failed=0;
