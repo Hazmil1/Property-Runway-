@@ -8,7 +8,7 @@ Standalone property and lease lifecycle operations, built from the Contract Runw
 - Breaks, rent reviews, renewals and other property events with explicit notice deadlines and planning dates.
 - Lease decisions and scenario planning, relocation milestones, tasks, approval workflows and legal amendments.
 - Private lease and property documents. Extraction adapter with evidence review; production requires a real provider.
-- In-app and optional Resend email notifications, escalation and acknowledgement; hourly notification job configuration.
+- In-app and optional Resend email notifications, escalation and acknowledgement; optional daily GitHub reminder schedule.
 - Audit history, portfolio reports, CSV lease import and export.
 - Public, isolated sample concept demo at /demo.html. Demo mode blocks all live application APIs.
 - Initial checked-in SQL migration with RLS enabled, unit and database integration tests, GitHub Actions verification.
@@ -23,9 +23,9 @@ The demo's interactions and displayed figures are illustrative; they do not crea
 ## Full application setup
 Use a **dedicated Supabase project/database**, separate from Contract Runway. This repository owns its own tables and migrations.
 1. Configure .env using .env.example. Never commit credentials.
-2. npm install
+2. npm ci
 3. npm run db:generate
-4. npm run db:migrate
+4. npm run db:prepare (see deployment guide for an already-created schema)
 5. npm run db:bootstrap
 6. Configure a private property-documents bucket in Supabase and the passwordless email template /auth/confirm.
 7. Set BOOTSTRAP_OWNER_EMAIL to the initial owner's verified work email. First login provisions that account only.
@@ -33,9 +33,9 @@ Use a **dedicated Supabase project/database**, separate from Contract Runway. Th
 9. npm run dev
 
 Production must set ALLOW_DEV_AUTH=false and DEMO_ONLY=false. The runtime additionally refuses development authentication when NODE_ENV=production.
-render.production.yaml describes the separate application and notification cron. It is **not applied automatically** by the demo Blueprint.
-Configure the same dedicated DATABASE_URL for the app and notification worker; set a verified Resend sender before enabling email rules.
-AI_EXTRACTION_MODE=webhook with a configured provider is required for real document extraction. Mock extraction is for local development only.
+render.production.yaml describes one free web application, with no paid cron or database. It is **not applied automatically** by the demo Blueprint.
+Startup checks credentials, prepares the schema, bootstraps the workspace and private bucket, and verifies readiness. See [the deployment guide](docs/DEPLOY_RENDER_SUPABASE.md). The optional GitHub reminder workflow skips until configured; a verified email sender is required before enabling email delivery.
+AI_EXTRACTION_MODE=disabled keeps manual property/lease entry available without an AI provider. Use webhook with a configured provider for real document extraction. Mock extraction is for local development only.
 
 ## Verification
 npm run db:generate
@@ -45,8 +45,8 @@ npm run typecheck
 npm test
 npm run build
 
-GitHub Actions runs the baseline migration, drift detection, unit tests, cross-organisation integration checks and production build against an ephemeral PostgreSQL database.
-Direct package versions are pinned in package.json. After a successful main-branch run, CI commits the verified dependency lock if the branch has not moved.
+GitHub Actions verifies clean and existing-schema preparation, drift rejection, unit tests, cross-organisation checks, production build and browser property creation/events/search at phone, tablet and desktop widths against ephemeral PostgreSQL.
+Direct package versions are pinned in package.json. The committed lock is installed with npm ci; dependency changes must update it explicitly.
 
 ## Lease CSV import
 Create properties first. Each row needs propertyReference, name, supplier, expiryDate, noticeDays, runwayDays.
