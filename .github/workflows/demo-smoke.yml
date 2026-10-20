@@ -1,0 +1,38 @@
+name: Verify published concept demo
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'demo/**'
+      - '.github/workflows/demo-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Check live public demo
+        run: |
+          node --input-type=module <<'JS'
+          const url = "https://property-runway-demo.onrender.com/";
+          let failure;
+          for (let attempt = 0; attempt < 6; attempt++) {
+            try {
+              const response = await fetch(url, {signal: AbortSignal.timeout(15000)});
+              const html = await response.text();
+              if (!response.ok || !html.includes("CONCEPT DEMO") || !html.includes("Property register")) {
+                throw new Error("Expected the labelled Property Runway demo; HTTP " + response.status);
+              }
+              console.log("PASS: public Render demo returns HTTP 200 with the concept label and property register.");
+              process.exit(0);
+            } catch (error) {
+              failure = error;
+              await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+          }
+          throw failure;
+          JS
