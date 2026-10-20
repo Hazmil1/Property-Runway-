@@ -20,7 +20,7 @@ try{
   await page.getByLabel('Address',{exact:true}).fill('10 Sample Street');
   await page.getByLabel('Tenure',{exact:true}).selectOption('FREEHOLD');
   await page.getByRole('button',{name:'Save property',exact:true}).click();
-  await page.waitForURL(/\/properties\/[^/]+$/);
+  await page.waitForURL(url=>url.pathname.startsWith('/properties/')&&url.pathname!=='/properties/new');
   assert.ok((await page.locator('main').innerText()).includes('Freehold ownership has no expiry'));
   await page.getByText('+ Add a property event',{exact:true}).click();
   await page.getByLabel('Event title').fill('Building inspection');

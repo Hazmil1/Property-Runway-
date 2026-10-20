@@ -21,5 +21,6 @@ try{
   prisma("migrate","resolve","--applied",initial);
  }
  prisma("migrate","deploy");
+ await db.query('ALTER TABLE public."_prisma_migrations" ENABLE ROW LEVEL SECURITY');
  console.log("Database migrations ready.");
 }finally{await db.end();}
