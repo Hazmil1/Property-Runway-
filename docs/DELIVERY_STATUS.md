@@ -1,20 +1,20 @@
-# Delivery status
-## Source implementation
-Adapted from the actual Contract Runway v0.12 default-branch source, with a separate Prisma schema and application namespace. No Contract Runway repository, database or Render service has been modified.
+# Property Runway delivery status
 
-## Added property behaviour
-Property register and manager membership checks; freehold ownership without expiry; multiple leases per property; explicit breaks/review/obligation dates; property document storage; property event timeline; escalation and notification acknowledgement; fixed-tenant query boundaries; production dev-auth guard.
+## Implemented source
+Separate property register, freehold/leasehold tenure, multiple linked leases, managers, search/tenure/archive filters, confirmed property events and runway dates, private documents, lease review, decisions, approvals, actions, reporting, audit, organisation-scoped access, notification acknowledgement and optional email delivery.
+The full app now has an accessible mobile drawer; the standalone sample remains separate.
+
+## Deployment preparation
+render.production.yaml targets one free Render web service. No paid cron or Render database is defined.
+Startup validates configuration, safely handles the pre-existing Supabase schema, migrates, bootstraps an empty workspace/private bucket and verifies readiness.
+The optional daily GitHub reminder workflow skips until its URL and secret are configured.
+The separate Supabase project has 19 empty application tables with RLS; server-only access is intentional. See [Supabase's RLS-no-policy advisory](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
 
 ## Validation
-The authoring container is unavailable. Changes are authored through the GitHub connector. The GitHub Actions run is the source of truth for build, schema drift and test results. Do not treat a pushed commit as a passed check. Browser interaction testing and live Supabase integration require a restored workspace or equivalent test environment.
+GitHub Actions is the source of truth: pinned install, schema drift, existing-schema baseline refusal/adoption, typecheck, unit and database tests, production build and actual property workflows in Chromium across phone/tablet/desktop widths.
+The static demo additionally has its own six-width navigation checks. A pushed commit alone is not a passed check.
 
-## Remaining infrastructure setup
-Confirm the intended Render workspace before any resource creation.
-Deploy the sample-only demo independently.
-Configure a new Supabase project, private bucket, owner email, email templates and application secrets.
-Apply the production Blueprint only after validation and secret configuration.
-Connect a verified Resend sender and a real extraction provider.
-Test login, membership, storage, human review, approvals and actual email delivery end to end before using customer data.
-
-## Existing concept
-The initial Sites app is not automatically replaced by this GitHub application. It retains its existing private audience and database.
+## Still required to activate the full application
+Configure server credentials and intended owner email directly in Render; confirm Supabase Auth redirects and sign-in email. Perform live storage/authentication acceptance checks.
+Email sender and extraction provider are optional and remain disabled until configured and tested. Direct property-event date edits are role-restricted/audited, not a two-person approval workflow.
+No existing Contract Runway services or data are modified. The live sample uses illustrative data and sends no emails.

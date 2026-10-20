@@ -36,49 +36,32 @@ jobs:
       - name: Validate isolated concept demo
         run: node scripts/validate-demo.mjs
       - name: Install pinned dependencies
-        run: npm install
+        run: npm ci
       - name: Validate schema and generate client
         run: npx prisma validate && npm run db:generate
       - name: Apply baseline migration
-        run: npm run db:migrate
+        run: npm run db:prepare
       - name: Check schema drift
         run: npm run db:check
+      - name: Verify existing Supabase schema baseline path
+        run: node scripts/test-database-preparation.mjs
       - name: Typecheck
         run: npm run typecheck
       - name: Unit and database integration tests
         run: npm test
       - name: Production build
         run: npm run build
+      - name: Seed isolated browser fixtures
+        run: npm run db:seed
+      - name: Install isolated browser test dependencies
+        run: npm install --prefix /tmp/property-app-browser playwright@1.56.1
+      - name: Install browser
+        run: /tmp/property-app-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Test property workflows and mobile layout
+        run: node scripts/test-app-browser.mjs
       - name: Package reproducible dependency lock
         uses: actions/upload-artifact@v4
         with:
           name: property-runway-package-lock
           path: package-lock.json
           retention-days: 30
-
-  persist-lock:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: property-runway-package-lock
-      - name: Commit only the verified dependency lock
-        run: |
-          git fetch origin main
-          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
-            echo "Source moved; leave lock for the next verified run."
-            exit 0
-          fi
-          git add package-lock.json
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Pin verified dependency lock"
-          git push origin HEAD:main

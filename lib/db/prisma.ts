@@ -10,7 +10,7 @@ function createClient() {
   const connectionString =
     process.env.DATABASE_URL ||
     "postgresql://placeholder:placeholder@127.0.0.1:5432/lease_runway";
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  return new PrismaClient({ adapter: new PrismaPg({ connectionString, max: 5, connectionTimeoutMillis: 15000, idleTimeoutMillis: 30000 }) });
 }
 
 export const prisma = globalForPrisma.prisma ?? createClient();

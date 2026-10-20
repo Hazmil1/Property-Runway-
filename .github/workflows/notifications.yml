@@ -1,0 +1,40 @@
+name: Property deadline reminders
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: property-deadline-reminders
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      APP_URL: ${{ vars.PROPERTY_RUNWAY_APP_URL }}
+      CRON_SECRET: ${{ secrets.PROPERTY_RUNWAY_CRON_SECRET }}
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Materialise due reminders
+        run: |
+          node --input-type=module <<'JS'
+          const base=process.env.APP_URL, secret=process.env.CRON_SECRET;
+          if(!base||!secret){console.log('Not enabled: configure the application URL and dispatch secret after acceptance testing.');process.exit(0);}
+          const url=new URL('/api/notifications/dispatch',base);
+          if(url.protocol!=='https:'||url.username||url.password)throw Error('An HTTPS application URL without credentials is required');
+          let ok=false;
+          for(let i=0;i<3;i++){
+            try{
+              const response=await fetch(url,{method:'POST',redirect:'error',headers:{authorization:'Bearer '+secret},signal:AbortSignal.timeout(60000)});
+              if(response.ok){ok=true;break;}
+              if(response.status===401||response.status===403)throw Error('Dispatch authentication failed');
+            }catch(error){console.log('Dispatch attempt did not complete');}
+            await new Promise(resolve=>setTimeout(resolve,10000));
+          }
+          if(!ok)throw Error('Reminder dispatch failed; inspect the app configuration and job logs');
+          console.log('Reminder dispatch completed.');
+          JS

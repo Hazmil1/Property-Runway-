@@ -17,7 +17,11 @@
     "notifications:run": "tsx scripts/run-notifications.ts",
     "postinstall": "prisma generate",
     "db:bootstrap": "tsx scripts/bootstrap-workspace.ts",
-    "db:check": "prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code"
+    "db:check": "prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code",
+    "verify:config": "tsx scripts/verify-config.ts",
+    "db:prepare": "tsx scripts/prepare-database.ts",
+    "storage:bootstrap": "tsx scripts/bootstrap-storage.ts",
+    "start:production": "sh scripts/start-production.sh"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

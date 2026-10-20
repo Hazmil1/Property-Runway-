@@ -1,18 +1,20 @@
-# Separate application deployment. Review plans and supply secrets before applying.
-# The database is a dedicated Supabase project; never reuse Contract Runway tables.
+# Full application only. The public sample demo remains in render.yaml.
+# First deployment needs secure environment configuration. No paid resources.
 services:
   - type: web
     name: property-runway-app
     runtime: node
-    plan: 0.5c-512mb
-    buildCommand: npm install && npm run db:generate && npm run build
-    preDeployCommand: npm run db:migrate && npm run db:bootstrap && npm run verify:production
-    startCommand: npm start
+    region: frankfurt
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start:production
     healthCheckPath: /api/health
-    autoDeploy: true
+    autoDeployTrigger: checksPass
     envVars:
       - key: NODE_VERSION
         value: 24.3.0
+      - key: NODE_ENV
+        value: production
       - key: DEMO_ONLY
         value: "false"
       - key: ALLOW_DEV_AUTH
@@ -34,24 +36,8 @@ services:
       - key: NEXT_PUBLIC_SUPABASE_PROPERTY_BUCKET
         value: property-documents
       - key: AI_EXTRACTION_MODE
-        value: webhook
-      - key: AI_EXTRACTION_WEBHOOK_URL
-        sync: false
-      - key: AI_EXTRACTION_WEBHOOK_SECRET
-        sync: false
-  - type: cron
-    name: property-runway-notifications
-    runtime: node
-    plan: 0.5c-512mb
-    schedule: "0 * * * *"
-    buildCommand: npm install && npm run db:generate
-    startCommand: npm run notifications:run
-    envVars:
-      - key: NODE_VERSION
-        value: 24.3.0
-      - key: DATABASE_URL
-        sync: false
-      - key: RESEND_API_KEY
-        sync: false
-      - key: NOTIFICATION_FROM_EMAIL
-        sync: false
+        value: disabled
+      - key: CRON_SECRET
+        generateValue: true
+      - key: BASELINE_EXISTING_SCHEMA
+        value: "true"

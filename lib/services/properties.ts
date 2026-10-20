@@ -2,7 +2,7 @@ import {prisma} from "@/lib/db/prisma";
 import type {RequestContext} from "@/lib/auth/context";
 import {assertCanEditLeases} from "@/lib/auth/permissions";
 import {propertySchema,propertyEventSchema} from "@/lib/validation/properties";
-export async function listProperties(ctx:RequestContext){return prisma.property.findMany({where:{organisationId:ctx.organisation.id,archived:false},include:{manager:true,_count:{select:{leases:true,events:true,documents:true}}},orderBy:{name:"asc"}})}
+export async function listProperties(ctx:RequestContext,filters:{q?:string;tenure?:"FREEHOLD"|"LEASEHOLD";archived?:boolean}={}){return prisma.property.findMany({where:{organisationId:ctx.organisation.id,archived:filters.archived??false,...(filters.tenure?{tenure:filters.tenure}:{}),...(filters.q?{OR:[{name:{contains:filters.q.slice(0,100),mode:"insensitive" as const}},{reference:{contains:filters.q.slice(0,100),mode:"insensitive" as const}},{postcode:{contains:filters.q.slice(0,100),mode:"insensitive" as const}},{city:{contains:filters.q.slice(0,100),mode:"insensitive" as const}}]}:{})},include:{manager:true,_count:{select:{leases:true,events:true,documents:true}}},orderBy:{name:"asc"}})}
 export async function getProperty(ctx:RequestContext,id:string){return prisma.property.findFirst({where:{id,organisationId:ctx.organisation.id},include:{manager:true,leases:{include:{owner:true},orderBy:{expiryDate:"asc"}},events:{orderBy:{noticeDeadline:"asc"}},documents:{orderBy:{createdAt:"desc"}}}})}
 export async function saveProperty(ctx:RequestContext,raw:unknown,id?:string){
  assertCanEditLeases(ctx);const data=propertySchema.parse(raw);
