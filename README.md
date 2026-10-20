@@ -46,7 +46,7 @@ npm test
 npm run build
 
 GitHub Actions runs the baseline migration, drift detection, unit tests, cross-organisation integration checks and production build against an ephemeral PostgreSQL database.
-The dependency lock is uploaded by CI for review and subsequent commit; direct package versions are pinned in package.json.
+Direct package versions are pinned in package.json. After a successful main-branch run, CI commits the verified dependency lock if the branch has not moved.
 
 ## Lease CSV import
 Create properties first. Each row needs propertyReference, name, supplier, expiryDate, noticeDays, runwayDays.
