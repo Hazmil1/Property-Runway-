@@ -1,0 +1,22 @@
+import {describe,it,expect,afterAll} from "vitest";import {prisma} from "../db/prisma";import {saveProperty,savePropertyEvent,getProperty} from "./properties";import {createLease} from "./leases";import type {RequestContext} from "../auth/context";
+const suite=process.env.RUN_DATABASE_TESTS==="true"?describe:describe.skip;
+suite("Property organisation boundaries and governance",()=>{const ids:string[]=[];
+afterAll(async()=>{for(const id of ids)await prisma.organisation.delete({where:{id}});await prisma.$disconnect()});
+it("isolates properties, rejects foreign managers and enforces date permissions",async()=>{
+ const org=await prisma.organisation.create({data:{name:"Integration A",slug:"test-a-"+crypto.randomUUID()}});ids.push(org.id);
+ const org2=await prisma.organisation.create({data:{name:"Integration B",slug:"test-b-"+crypto.randomUUID()}});ids.push(org2.id);
+ const owner=await prisma.user.create({data:{organisationId:org.id,name:"Owner A",email:"a@example.test",role:"OWNER"}});
+ const viewer=await prisma.user.create({data:{organisationId:org.id,name:"Viewer",email:"viewer@example.test",role:"VIEWER"}});
+ const manager=await prisma.user.create({data:{organisationId:org.id,name:"Manager",email:"manager@example.test",role:"PROPERTY_MANAGER"}});
+ const other=await prisma.user.create({data:{organisationId:org2.id,name:"Owner B",email:"b@example.test",role:"OWNER"}});
+ const ctx={user:owner,organisation:org,authMode:"development"} as RequestContext;
+ const raw={name:"Riverside",reference:"PR-TEST",address:"1 Test Street",tenure:"FREEHOLD",managerId:manager.id};
+ const p=await saveProperty(ctx,raw);
+ expect(await getProperty({user:other,organisation:org2,authMode:"development"},p.id)).toBe(null);
+ await expect(saveProperty({...ctx,user:viewer},raw)).rejects.toThrow("permission");
+ await expect(saveProperty(ctx,{...raw,reference:"P2",managerId:other.id})).rejects.toThrow("Manager not found");
+ const lease=await createLease(ctx,{name:"Ground floor",propertyId:p.id,supplierName:"Landlord",ownerId:manager.id,currency:"GBP",expiryDate:new Date("2030-01-01"),contractualNoticeDays:180,planningRunwayDays:180,autoRenews:false});
+ const event=await savePropertyEvent(ctx,p.id,{title:"Rent review",type:"RENT_REVIEW",leaseId:lease.id,eventDate:"2028-01-01",noticeDeadline:"2027-10-01",planningDays:90});
+ await expect(savePropertyEvent({...ctx,user:manager},p.id,{title:"Changed review",type:"RENT_REVIEW",leaseId:lease.id,eventDate:"2028-02-01",noticeDeadline:"2027-10-01",planningDays:90,notes:"Changed date"},event.id)).rejects.toThrow("permission");
+ const audit=await prisma.auditEvent.count({where:{organisationId:org.id,entityType:"Property"}});expect(audit).toBeGreaterThan(0);
+});});

@@ -1,0 +1,1 @@
+export function StatusPill({status}:{status:string}) { const cls=["ON_TRACK","CLOSED"].includes(status)?"green":status==="DECISION_DUE"?"amber":"red"; const label=status.replaceAll("_"," "); return <span className={`pill ${cls}`}>{label}</span> }

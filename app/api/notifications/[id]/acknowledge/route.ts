@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {requireContext} from "@/lib/auth/context";import {prisma} from "@/lib/db/prisma";import {apiError} from "@/lib/http";
+export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){try{const ctx=await requireContext();const {id}=await params;const result=await prisma.notificationEvent.updateMany({where:{id,userId:ctx.user.id},data:{acknowledgedAt:new Date()}});if(!result.count)throw Error("Notification not found");return NextResponse.json({ok:true})}catch(e){return apiError(e)}}

@@ -1,0 +1,55 @@
+name: Property Runway verification
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-only-local
+          POSTGRES_DB: property_runway_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:test-only-local@localhost:5432/property_runway_test
+      RUN_DATABASE_TESTS: "true"
+      DEMO_ONLY: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install pinned dependencies
+        run: npm install
+      - name: Validate schema and generate client
+        run: npx prisma validate && npm run db:generate
+      - name: Apply baseline migration
+        run: npm run db:migrate
+      - name: Check schema drift
+        run: npm run db:check
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit and database integration tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Package reproducible dependency lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: property-runway-package-lock
+          path: package-lock.json
+          retention-days: 30

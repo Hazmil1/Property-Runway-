@@ -1,0 +1,2 @@
+import "dotenv/config";import {PrismaPg} from "@prisma/adapter-pg";import {PrismaClient} from "../generated/prisma/client";
+if(!process.env.DATABASE_URL)throw Error("DATABASE_URL required");const db=new PrismaClient({adapter:new PrismaPg({connectionString:process.env.DATABASE_URL})});try{await db.organisation.upsert({where:{slug:"property-runway"},update:{},create:{name:process.env.ORGANISATION_NAME||"Property estate",slug:"property-runway"}});console.log("Workspace ready")}finally{await db.$disconnect()}

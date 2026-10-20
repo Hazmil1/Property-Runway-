@@ -1,0 +1,18 @@
+import Link from "next/link";
+import { requireContext } from "@/lib/auth/context";
+import { portfolioSummary } from "@/lib/services/portfolio";
+export const dynamic="force-dynamic";
+const money=(v:number)=>new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",maximumFractionDigits:0}).format(v);
+
+export default async function ReportsPage(){
+ const ctx=await requireContext();const s=await portfolioSummary(ctx);const i=s.intelligence;
+ const max=Math.max(1,...i.monthlyDemand.map(x=>x.leases));
+ const categoryMax=Math.max(1,...i.categories.map(x=>x.value));
+ return <><header className="pageHeader"><div><span className="eyebrow">Portfolio intelligence</span><h1>Reports</h1><p>Commercial exposure, ownership load and procurement demand derived from the live lease register.</p></div><a className="btn" href="/api/reports/leases.csv">Download portfolio CSV</a></header>
+ <section className="metrics"><article><span>Portfolio value</span><strong>{money(s.values.totalValue)}</strong><small>{s.counts.leases} active leases</small></article><article><span>Value behind runway</span><strong>{money(s.values.valueBehind)}</strong><small>{s.counts.behind} leases</small></article><article><span>Undecided value</span><strong>{money(i.undecidedValue)}</strong><small>{i.staleDecisions} stale 60+ days</small></article><article><span>Auto-renew ≤90d</span><strong>{money(i.autoRenewalDue90)}</strong><small>Approaching legal notice</small></article><article><span>Notice ≤90 days</span><strong>{s.counts.notice90}</strong><small>Legal deadlines approaching</small></article></section>
+ <div className="contentGrid"><section className="panel"><div className="panelHead"><h2>Procurement demand forecast</h2><span className="mutedText">Action-by starts</span></div>{i.monthlyDemand.length?i.monthlyDemand.map(m=><div className="demandRow" key={m.month}><span>{m.month}</span><div className="progressLine"><span style={{width:`${m.leases/max*100}%`}}/></div><b>{m.leases}</b><small>{money(m.value)}</small></div>):<div className="empty"><p>No forecast demand yet.</p></div>}</section>
+ <section className="panel"><div className="panelHead"><h2>Decision pipeline</h2><Link href="/decisions">Open board →</Link></div>{i.decisionPipeline.map(x=><div className="reportRow" key={x.decision}><div><b>{x.decision.replaceAll("_"," ")}</b><small>{x.leases} lease{x.leases===1?"":"s"}</small></div><strong>{money(x.value)}</strong></div>)}</section></div>
+ <div className="contentGrid"><section className="panel"><div className="panelHead"><h2>Category concentration</h2><span className="mutedText">Value and runway risk</span></div>{i.categories.slice(0,10).map(x=><div className="categoryRow" key={x.category}><div><b>{x.category}</b><small>{x.leases} leases · {x.behind} behind runway</small></div><div className="categoryBar"><span style={{width:`${x.value/categoryMax*100}%`}}/></div><strong>{money(x.value)}</strong></div>)}</section>
+ <section className="panel"><div className="panelHead"><h2>Owner workload</h2><span className="mutedText">Urgent and undecided</span></div>{i.owners.slice(0,10).map(x=><div className="reportRow" key={x.ownerId??"unassigned"}><div><b>{x.ownerName}</b><small>{x.leases} leases · {x.urgent} urgent · {x.undecided} undecided</small></div><strong>{money(x.value)}</strong></div>)}</section></div>
+ <section className="panel"><div className="panelHead"><h2>Largest supplier exposure</h2><Link href="/suppliers">Supplier view →</Link></div>{s.suppliers.slice(0,10).map(x=><div className="reportRow" key={x.id}><div><b>{x.name}</b><small>{x.leases} leases · {x.behind} behind runway</small></div><strong>{money(x.value)}</strong></div>)}</section></>
+}

@@ -1,0 +1,3 @@
+import {NextResponse} from "next/server";import {requireContext} from "@/lib/auth/context";import {getProperty,saveProperty} from "@/lib/services/properties";import {apiError} from "@/lib/http";
+export async function GET(req:Request,{params}:{params:Promise<{id:string}>}){try{const p=await getProperty(await requireContext(),(await params).id);if(!p)return NextResponse.json({error:"Property not found"},{status:404});return NextResponse.json(p)}catch(e){return apiError(e)}}
+export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){try{return NextResponse.json(await saveProperty(await requireContext(),await req.json(),(await params).id))}catch(e){return apiError(e)}}

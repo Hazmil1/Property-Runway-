@@ -1,0 +1,17 @@
+# Shareable concept demo only. This service cannot access live records or send emails.
+services:
+  - type: web
+    name: property-runway-demo
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run db:generate && npm test && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 24.3.0
+      - key: DEMO_ONLY
+        value: "true"
+      - key: ALLOW_DEV_AUTH
+        value: "false"

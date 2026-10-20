@@ -1,0 +1,57 @@
+# Separate application deployment. Review plans and supply secrets before applying.
+# The database is a dedicated Supabase project; never reuse Contract Runway tables.
+services:
+  - type: web
+    name: property-runway-app
+    runtime: node
+    plan: 0.5c-512mb
+    buildCommand: npm install && npm run db:generate && npm run build
+    preDeployCommand: npm run db:migrate && npm run db:bootstrap && npm run verify:production
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 24.3.0
+      - key: DEMO_ONLY
+        value: "false"
+      - key: ALLOW_DEV_AUTH
+        value: "false"
+      - key: DATABASE_URL
+        sync: false
+      - key: BOOTSTRAP_OWNER_EMAIL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_PROPERTY_BUCKET
+        value: property-documents
+      - key: NEXT_PUBLIC_SUPABASE_PROPERTY_BUCKET
+        value: property-documents
+      - key: AI_EXTRACTION_MODE
+        value: webhook
+      - key: AI_EXTRACTION_WEBHOOK_URL
+        sync: false
+      - key: AI_EXTRACTION_WEBHOOK_SECRET
+        sync: false
+  - type: cron
+    name: property-runway-notifications
+    runtime: node
+    plan: 0.5c-512mb
+    schedule: "0 * * * *"
+    buildCommand: npm install && npm run db:generate
+    startCommand: npm run notifications:run
+    envVars:
+      - key: NODE_VERSION
+        value: 24.3.0
+      - key: DATABASE_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: NOTIFICATION_FROM_EMAIL
+        sync: false

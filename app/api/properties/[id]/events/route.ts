@@ -1,0 +1,3 @@
+import {NextResponse} from "next/server";import {requireContext} from "@/lib/auth/context";import {savePropertyEvent} from "@/lib/services/properties";import {apiError} from "@/lib/http";
+export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){try{return NextResponse.json(await savePropertyEvent(await requireContext(),(await params).id,await req.json()),{status:201})}catch(e){return apiError(e)}}
+export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){try{const {eventId,...data}=await req.json();if(typeof eventId!=="string")throw new Error("Event ID required");return NextResponse.json(await savePropertyEvent(await requireContext(),(await params).id,data,eventId))}catch(e){return apiError(e)}}

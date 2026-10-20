@@ -1,0 +1,2 @@
+"use client";import {useState} from "react";
+export function AcknowledgeNotification({id}:{id:string}){const [busy,setBusy]=useState(false);const [error,setError]=useState("");return <><button className="btn secondary" disabled={busy} onClick={async()=>{setBusy(true);try{const r=await fetch("/api/notifications/"+id+"/acknowledge",{method:"POST"});if(!r.ok)throw Error("Unable to acknowledge");window.location.reload()}catch(e){setError(e instanceof Error?e.message:"Request failed");setBusy(false)}}}>Acknowledge</button>{error&&<small>{error}</small>}</>}
