@@ -1,0 +1,23 @@
+name: Property demo mobile checks
+on:
+  push:
+    paths:
+      - 'demo/**'
+      - 'scripts/test-demo-mobile.mjs'
+      - '.github/workflows/demo-mobile.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/validate-demo.mjs
+      - run: npm install --prefix /tmp/property-demo-browser playwright@1.56.1
+      - run: /tmp/property-demo-browser/node_modules/.bin/playwright install --with-deps chromium
+      - run: node scripts/test-demo-mobile.mjs
