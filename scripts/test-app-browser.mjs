@@ -19,8 +19,9 @@ try{
   await page.getByLabel('Reference',{exact:true}).fill('BROWSER-'+width);
   await page.getByLabel('Address',{exact:true}).fill('10 Sample Street');
   await page.getByLabel('Tenure',{exact:true}).selectOption('FREEHOLD');
+  assert.deepEqual(await page.locator('form').evaluate(form=>Array.from(form.querySelectorAll('input,select,textarea')).filter(el=>!el.checkValidity()).map(el=>({name:el.name,message:el.validationMessage}))),[], 'Property fields must be valid');
   await page.getByRole('button',{name:'Save property',exact:true}).click();
-  await page.waitForURL(url=>url.pathname.startsWith('/properties/')&&url.pathname!=='/properties/new');
+  try { await page.waitForURL(url=>url.pathname.startsWith('/properties/')&&url.pathname!=='/properties/new'); } catch(error) { console.error('Property save diagnostics',await page.locator('main').innerText(),errors); throw error; }
   assert.ok((await page.locator('main').innerText()).includes('Freehold ownership has no expiry'));
   await page.getByText('+ Add a property event',{exact:true}).click();
   await page.getByLabel('Event title').fill('Building inspection');
