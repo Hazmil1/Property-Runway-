@@ -1,3 +1,4 @@
+import {sameApplicationOrigin} from "../http-origin";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -16,7 +17,7 @@ function originAllowed(request:NextRequest){
  if(request.nextUrl.pathname==="/api/notifications/dispatch")return true;
  const origin=request.headers.get("origin");
  if(!origin)return false;
- try{return new URL(origin).origin===request.nextUrl.origin}catch{return false}
+ return sameApplicationOrigin(origin,request.nextUrl.origin,process.env.NEXT_PUBLIC_APP_URL);
 }
 
 export async function updateSession(request: NextRequest) {
