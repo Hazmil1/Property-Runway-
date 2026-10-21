@@ -1,6 +1,6 @@
 import {createRequire} from 'node:module';import assert from 'node:assert/strict';import {spawn} from 'node:child_process';
 const require=createRequire('/tmp/property-app-browser/package.json');const {chromium}=require('playwright');
-const server=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','-H','127.0.0.1','-p','3001'],{env:{...process.env,NODE_ENV:'development',DEMO_ONLY:'false',ALLOW_DEV_AUTH:'true',DEV_ORG_SLUG:'acme-demo',DEV_USER_EMAIL:'owner@example.com'},stdio:'inherit'});
+const server=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','-H','127.0.0.1','-p','3001'],{env:{...process.env,NODE_ENV:'development',NEXT_PUBLIC_APP_URL:'http://127.0.0.1:3001',DEMO_ONLY:'false',ALLOW_DEV_AUTH:'true',DEV_ORG_SLUG:'acme-demo',DEV_USER_EMAIL:'owner@example.com'},stdio:'inherit'});
 let browser;
 try{
  let ready=false;for(let i=0;i<90;i++){try{const r=await fetch('http://127.0.0.1:3001/api/health');if(r.ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,1000))}
